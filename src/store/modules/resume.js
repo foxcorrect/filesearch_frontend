@@ -3,17 +3,16 @@
  * @Description: 
  * @Author: guyawei (1972065889@qq.com)
  * @Date: 2026-04-24 23:15:49
- * @LastEditTime: 2026-04-25 10:19:48
+ * @LastEditTime: 2026-04-25 14:44:58
  * @LastEditors: guyawei (1972065889@qq.com)
  * @FilePath: \filesearch\resume-frontend\src\store\modules\resume.js
  */
-import { getResumeList, getResumeDetail, updateResume } from '@/api/resume';
+import { getResumeList } from '@/api/resume';
 
 const resume = {
   namespaced: true,
   state: {
     list: [],
-    detail: null,
     loading: false,
     total: 0,
     page: 1,
@@ -22,9 +21,6 @@ const resume = {
   mutations: {
     SET_LIST(state, list) {
       state.list = list;
-    },
-    SET_DETAIL(state, detail) {
-      state.detail = detail;
     },
     SET_LOADING(state, loading) {
       state.loading = loading;
@@ -51,15 +47,6 @@ const resume = {
       } finally {
         commit('SET_LOADING', false);
       }
-    },
-    async fetchDetail({ commit }, id) {
-      const res = await getResumeDetail(id);
-      commit('SET_DETAIL', res.data || res);
-    },
-    async updateDetail({ commit }, { id, data }) {
-      const res = await updateResume(id, data);
-      commit('SET_DETAIL', res.data || res);
-      return res;
     },
   },
 };

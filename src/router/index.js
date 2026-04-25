@@ -28,6 +28,11 @@ const router = new Router({
           name: 'ResumeUpload',
           component: () => import('@/views/ResumeUpload.vue'),
         },
+        {
+          path: 'resume/:id',
+          name: 'ResumeDetail',
+          component: () => import('@/views/ResumeDetail.vue'),
+        },
       ],
     },
     {

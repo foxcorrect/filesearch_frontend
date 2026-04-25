@@ -3,7 +3,7 @@
  * @Description: 
  * @Author: guyawei (1972065889@qq.com)
  * @Date: 2026-04-25 09:50:06
- * @LastEditTime: 2026-04-25 10:17:46
+ * @LastEditTime: 2026-04-25 17:13:27
  * @LastEditors: guyawei (1972065889@qq.com)
  * @FilePath: \filesearch\resume-frontend\src\api\resume.js
  */
@@ -24,5 +24,15 @@ export function updateResume(id, data) {
 export function uploadResume(formData) {
   return request.post('/resumes/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+  });
+}
+
+export function getResumePdfContent(id) {
+  return request.get(`/resumes/${id}/pdf`);
+}
+
+export function getResumePdfFile(id) {
+  return request.get(`/resumes/${id}/pdf/download`, {
+    responseType: 'arraybuffer',
   });
 }
