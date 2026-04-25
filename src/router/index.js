@@ -15,9 +15,20 @@ const router = new Router({
     },
     {
       path: '/',
-      name: 'ResumeList',
-      component: () => import('@/views/ResumeList.vue'),
+      component: () => import('@/layouts/MainLayout.vue'),
       meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'ResumeList',
+          component: () => import('@/views/ResumeList.vue'),
+        },
+        {
+          path: 'upload',
+          name: 'ResumeUpload',
+          component: () => import('@/views/ResumeUpload.vue'),
+        },
+      ],
     },
     {
       path: '*',

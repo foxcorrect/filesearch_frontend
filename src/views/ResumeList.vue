@@ -1,13 +1,13 @@
 <template>
   <div class="resume-list-page">
-    <!-- 顶部导航 -->
-    <el-header class="page-header">
-      <span class="page-title">简历列表</span>
-      <el-button type="text" @click="handleLogout">退出登录</el-button>
-    </el-header>
+    <div class="page-header">
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>简历列表</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
 
-    <!-- 简历表格 -->
-    <el-main class="page-main">
+    <div class="page-main">
       <el-table
         v-loading="loading"
         :data="list"
@@ -15,10 +15,10 @@
         border
         style="width: 100%"
       >
-        <el-table-column prop="name" label="姓名" min-width="120" />
-        <el-table-column prop="age" label="年龄" width="100" />
-        <el-table-column prop="workYears" label="工作年限" width="120" />
-        <el-table-column label="操作" width="150">
+        <el-table-column prop="username" label="姓名" />
+        <el-table-column prop="age" label="年龄" align="center" />
+        <el-table-column prop="workYears" label="工作年限" align="center" />
+        <el-table-column label="操作" align="center" >
           <template slot-scope="{ row }">
             <el-button type="primary" size="small" @click="openDrawer(row)">
               编辑
@@ -26,7 +26,20 @@
           </template>
         </el-table-column>
       </el-table>
-    </el-main>
+
+      <div class="pagination-wrapper">
+        <el-pagination
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          :page-sizes="[5, 10, 20, 50]"
+          :page-size="size"
+          :total="total"
+          :current-page="page"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
+    </div>
 
     <!-- Drawer 抽屉 -->
     <el-drawer
@@ -71,12 +84,21 @@ export default {
     };
   },
   computed: {
-    ...mapState('resume', ['list', 'loading']),
+    ...mapState('resume', ['list', 'loading', 'total', 'page', 'size']),
   },
   mounted() {
     this.$store.dispatch('resume/fetchList');
   },
   methods: {
+    handleSizeChange(newSize) {
+      this.$store.commit('resume/SET_SIZE', newSize);
+      this.$store.commit('resume/SET_PAGE', 1);
+      this.$store.dispatch('resume/fetchList', { page: 1, size: newSize });
+    },
+    handleCurrentChange(newPage) {
+      this.$store.commit('resume/SET_PAGE', newPage);
+      this.$store.dispatch('resume/fetchList', { page: newPage });
+    },
     async openDrawer(resume) {
       this.currentResume = resume;
       this.drawerVisible = true;
@@ -136,35 +158,30 @@ export default {
         done && done();
       }
     },
-    handleLogout() {
-      this.$store.dispatch('auth/logout');
-      this.$router.push('/login');
-    },
   },
 };
 </script>
 
 <style scoped>
 .resume-list-page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: #f5f7fa;
 }
 .page-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  margin-bottom: 16px;
   background: #fff;
   padding: 0 24px;
+  line-height: 56px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-.page-title {
-  font-size: 18px;
-  font-weight: 600;
+  margin-top: 10px;
+  height: 40px;
+  padding-top: 25px;
 }
 .page-main {
   padding: 24px;
+}
+.pagination-wrapper {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 .drawer-body {
   padding: 0 20px 20px;
