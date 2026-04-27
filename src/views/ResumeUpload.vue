@@ -38,6 +38,7 @@
           <el-form-item label="简历文件" prop="file">
             <el-upload
               ref="upload"
+              action=""
               :auto-upload="false"
               :limit="1"
               :on-change="handleFileChange"

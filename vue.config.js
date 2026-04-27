@@ -9,7 +9,7 @@
  */
 module.exports = {
   devServer: {
-    port: 3001,
+    port: 3000,
     proxy: {
       '/api': {
         target: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080',

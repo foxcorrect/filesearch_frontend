@@ -21,17 +21,12 @@
       <!-- 左侧：PDF 预览 -->
       <div class="pdf-panel">
         <div class="panel-title">PDF 预览</div>
-        <div class="pdf-wrapper">
-          <embed
-            v-if="pdfUrl"
-            :key="pdfUrl"
-            :src="pdfUrl"
-            type="application/pdf"
-            class="pdf-viewer"
-          />
-          <div v-else class="pdf-placeholder">
+        <div v-if="pdfRendered" ref="pdfContainer" class="pdf-wrapper pdf-scroll">
+        </div>
+        <div v-else class="pdf-wrapper">
+          <div class="pdf-placeholder">
             <i class="el-icon-document"></i>
-            <p>正在加载 PDF...</p>
+            <p>{{ loading ? '正在加载 PDF...' : '暂无 PDF' }}</p>
           </div>
         </div>
       </div>
@@ -58,6 +53,13 @@
 <script>
 import RichTextEditor from '@/components/RichTextEditor.vue';
 import { getResumeDetail, getResumePdfContent, getResumePdfFile, updateResume } from '@/api/resume';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Configure pdf.js worker via Webpack 5 asset modules
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.js',
+  import.meta.url
+).href;
 
 export default {
   name: 'ResumeDetail',
@@ -66,7 +68,8 @@ export default {
     return {
       resume: null,
       editorContent: '',
-      pdfUrl: null,
+      pdfDoc: null,
+      pdfRendered: false,
       loading: false,
       saving: false,
     };
@@ -87,6 +90,7 @@ export default {
   methods: {
     async loadData(id) {
       this.loading = true;
+      this.pdfRendered = false;
       try {
         const detailRes = await getResumeDetail(id);
         this.resume = detailRes.data;
@@ -104,8 +108,11 @@ export default {
       }
       try {
         const pdfRes = await getResumePdfFile(id);
-        if (this.pdfUrl) URL.revokeObjectURL(this.pdfUrl);
-        this.pdfUrl = URL.createObjectURL(new Blob([pdfRes], { type: 'application/pdf' }));
+        const loadingTask = pdfjsLib.getDocument({ data: pdfRes });
+        this.pdfDoc = await loadingTask.promise;
+        this.pdfRendered = true;
+        await this.$nextTick();
+        await this.renderPdf();
       } catch {
         this.$message.warning('PDF 预览加载失败');
       }
@@ -113,7 +120,7 @@ export default {
     },
     async handleSave() {
       if (!this.resume) return;
-      this.saving = true;
+      this.loading = true;
       try {
         await updateResume(this.resume.id, {
           username: this.resume.username,
@@ -127,24 +134,60 @@ export default {
       } catch {
         // error handled by interceptor
       } finally {
-        this.saving = false;
+        this.loading = false;
+      }
+    },
+    async renderPdf() {
+      const container = this.$refs.pdfContainer;
+      if (!container || !this.pdfDoc) return;
+      container.innerHTML = '';
+
+      const dpr = window.devicePixelRatio || 1;
+
+      for (let i = 1; i <= this.pdfDoc.numPages; i++) {
+        const page = await this.pdfDoc.getPage(i);
+        const viewport1 = page.getViewport({ scale: 1 });
+        const scale = container.clientWidth / viewport1.width;
+        const viewport = page.getViewport({ scale: scale * dpr });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        canvas.style.cssText = 'width:100%;height:auto;display:block';
+        if (i > 1) {
+          canvas.style.marginTop = '4px';
+        }
+        container.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+        await page.render({ canvasContext: ctx, viewport }).promise;
       }
     },
     async refreshPdf() {
+      if (this.pdfDoc) {
+        this.pdfDoc.destroy();
+        this.pdfDoc = null;
+      }
+      this.pdfRendered = false;
+      await this.loadPdfContent(this.resume.id);
+    },
+    async loadPdfContent(id) {
       try {
-        const pdfRes = await getResumePdfFile(this.resume.id);
-        if (this.pdfUrl) {
-          URL.revokeObjectURL(this.pdfUrl);
-        }
-        this.pdfUrl = URL.createObjectURL(new Blob([pdfRes], { type: 'application/pdf' }));
+        const pdfRes = await getResumePdfFile(id);
+        const loadingTask = pdfjsLib.getDocument({ data: pdfRes });
+        this.pdfDoc = await loadingTask.promise;
+        this.pdfRendered = true;
+        await this.$nextTick();
+        await this.renderPdf();
       } catch {
         this.$message.warning('PDF 预览刷新失败');
       }
     },
   },
   beforeDestroy() {
-    if (this.pdfUrl) {
-      URL.revokeObjectURL(this.pdfUrl);
+    if (this.pdfDoc) {
+      this.pdfDoc.destroy();
+      this.pdfDoc = null;
     }
   },
 };
@@ -153,9 +196,10 @@ export default {
 <style scoped>
 .resume-detail-page {
   background: #fff;
-  min-height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .page-header {
   margin-bottom: 10px;
@@ -211,20 +255,21 @@ export default {
   flex: 1;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
-  overflow: hidden;
   background: #f5f7fa;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
-.pdf-viewer {
-  width: 100%;
-  height: 100%;
-  border: none;
+.pdf-scroll {
+  overflow-y: auto;
+  padding: 8px;
 }
 .pdf-placeholder {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
   color: #909399;
 }
 .pdf-placeholder i {

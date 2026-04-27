@@ -7,13 +7,14 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "@wangeditor/editor": "^5.1.23",
+    "@wangeditor/editor-for-vue": "^1.0.2",
     "axios": "^1.6.7",
     "codemirror": "^5.65.16",
     "element-ui": "^2.15.14",
     "pdfjs-dist": "^3.11.174",
     "vue": "^2.7.14",
     "vue-codemirror": "^4.0.6",
-    "vue-quill-editor": "^3.0.6",
     "vue-router": "^3.6.5",
     "vuex": "^3.6.2"
   },
