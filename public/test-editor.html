@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Editor Test</title>
+<style>
+body{font-family:sans-serif;margin:20px;background:#f0f0f0}
+.toolbar{position:sticky;top:0;background:#fafafa;padding:8px;border:1px solid #ccc;margin-bottom:10px;z-index:1}
+.toolbar button{padding:4px 10px;margin-right:4px;cursor:pointer}
+.page{position:relative;width:794px;height:1123px;background:#fff;margin:0 auto;box-shadow:0 0 10px rgba(0,0,0,.1)}
+.t{position:absolute;font-size:14px;white-space:pre}
+#msg{padding:10px;color:green;font-weight:bold}
+</style></head>
+<body>
+<h2>Editor Test (designMode + srcdoc iframe)</h2>
+<div class="toolbar">
+  <button onmousedown="exec('bold');return false"><b>B</b></button>
+  <button onmousedown="exec('italic');return false"><i>I</i></button>
+  <button onmousedown="exec('underline');return false"><u>U</u></button>
+  <button onclick="getResult()" style="margin-left:20px;background:#409eff;color:#fff;border:none;padding:6px 16px;border-radius:4px">Get Content</button>
+  <span id="msg"></span>
+</div>
+<iframe id="f" sandbox="allow-same-origin allow-scripts" style="width:100%;height:800px;border:1px solid #ccc"></iframe>
+<pre id="out" style="background:#eee;padding:10px;max-height:300px;overflow:auto;font-size:11px"></pre>
+
+<script>
+const testHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><style>' +
+  '.t{position:absolute}' +
+  '</style></head><body>' +
+  '<div class="page" style="position:relative;width:794px;height:1123px">' +
+  '<div class="t" style="left:100px;top:80px;font-size:22px;font-weight:bold">John Doe</div>' +
+  '<div class="t" style="left:100px;top:120px;font-size:14px;color:#666">Software Engineer</div>' +
+  '<div class="t" style="left:80px;top:180px;font-size:16px;font-weight:bold">WORK EXPERIENCE</div>' +
+  '<div class="t" style="left:80px;top:210px;font-size:14px">Senior Developer at Acme Corp (2020-2024)</div>' +
+  '<div class="t" style="left:80px;top:235px;font-size:14px">Led a team of 5 engineers building cloud infrastructure.</div>' +
+  '<div class="t" style="left:80px;top:260px;font-size:14px">Developer at StartUp Inc (2018-2020)</div>' +
+  '<div class="t" style="left:80px;top:285px;font-size:14px">Built React frontend for customer-facing dashboard.</div>' +
+  '<div class="t" style="left:80px;top:340px;font-size:16px;font-weight:bold">EDUCATION</div>' +
+  '<div class="t" style="left:80px;top:370px;font-size:14px">B.S. Computer Science, MIT (2014-2018)</div>' +
+  '<div class="t" style="left:80px;top:420px;font-size:16px;font-weight:bold">SKILLS</div>' +
+  '<div class="t" style="left:80px;top:450px;font-size:14px">Java, Python, React, Docker, AWS, Kubernetes</div>' +
+  '</div></body></html>';
+
+const f = document.getElementById('f');
+f.srcdoc = testHtml;
+
+f.onload = function() {
+  const doc = f.contentDocument;
+  // Inject fix CSS
+  const s = doc.createElement('style');
+  s.textContent = '*{-webkit-user-select:text!important;user-select:text!important}.t:hover{outline:1px dashed rgba(64,158,255,0.4)!important}';
+  doc.head.appendChild(s);
+  // Enable editing
+  doc.designMode = 'on';
+  document.getElementById('msg').textContent = 'Editor ready - click any text to edit!';
+};
+
+function exec(cmd) {
+  const doc = f.contentDocument;
+  if (doc) { doc.execCommand(cmd, false, null); f.contentWindow.focus(); }
+}
+function getResult() {
+  const doc = f.contentDocument;
+  document.getElementById('out').textContent = doc.documentElement.outerHTML.substring(0, 500);
+  document.getElementById('msg').textContent = 'Content captured (first 500 chars shown below)';
+}
+</script>
+</body></html>

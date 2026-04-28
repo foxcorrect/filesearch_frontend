@@ -30,9 +30,3 @@ export function uploadResume(formData) {
 export function getResumePdfContent(id) {
   return request.get(`/resumes/${id}/pdf`);
 }
-
-export function getResumePdfFile(id) {
-  return request.get(`/resumes/${id}/pdf/download`, {
-    responseType: 'arraybuffer',
-  });
-}
