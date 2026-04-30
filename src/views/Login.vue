@@ -52,7 +52,7 @@ export default {
           this.$message.success('登录成功');
           this.$router.push('/');
         } catch {
-          // error handled by interceptor
+          this.$message.error('登录失败，请重试');
         } finally {
           this.loading = false;
         }

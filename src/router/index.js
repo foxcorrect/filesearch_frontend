@@ -1,8 +1,17 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import { getToken } from '@/utils/storage';
+import { getToken, removeToken } from '@/utils/storage';
 
 Vue.use(Router);
+
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return false;
+  }
+}
 
 const router = new Router({
   mode: 'history',
@@ -43,7 +52,10 @@ const router = new Router({
 });
 
 router.beforeEach((to, _from, next) => {
-  const isLoggedIn = !!getToken();
+  const token = getToken();
+  const expired = token && isTokenExpired(token);
+  if (expired) removeToken();
+  const isLoggedIn = !!token && !expired;
   if (to.meta.requiresAuth && !isLoggedIn) {
     next('/login');
   } else if (to.path === '/login' && isLoggedIn) {

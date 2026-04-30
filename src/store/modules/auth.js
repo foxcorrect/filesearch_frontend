@@ -15,6 +15,9 @@ const auth = {
     async login({ commit }, credentials) {
       const res = await login(credentials);
       const token = res.token || res.data?.token;
+      if (!token) {
+        throw new Error('登录失败：未获取到有效 token');
+      }
       commit('SET_TOKEN', token);
       setToken(token);
       return token;

@@ -80,8 +80,8 @@
         <div class="preview-info">
           <p><strong>姓名：</strong>{{ form.name || '未填写' }}</p>
           <p><strong>性别：</strong>{{ form.gender === 1 ? '男' : form.gender === 2 ? '女' : '未填写' }}</p>
-          <p><strong>年龄：</strong>{{ form.age || '未填写' }}</p>
-          <p><strong>工作年限：</strong>{{ form.workYears ?? '未填写' }}</p>
+          <p><strong>年龄：</strong>{{ form.age != null ? form.age : '未填写' }}</p>
+          <p><strong>工作年限：</strong>{{ form.workYears != null ? form.workYears : '未填写' }}</p>
         </div>
         <embed
           v-if="previewUrl"
@@ -171,7 +171,7 @@ export default {
           this.$message.success('上传成功');
           this.resetForm();
         } catch {
-          // error handled by interceptor
+          this.$message.error('上传失败，请重试');
         } finally {
           this.submitting = false;
         }
@@ -205,13 +205,7 @@ export default {
 }
 .page-header {
   margin-bottom: 16px;
-  background: #fff;
-  padding: 0 24px;
-  line-height: 56px;
   border-bottom: 1px solid #eee;
-  margin-top: 10px;
-  height: 40px;
-  padding-top: 25px;
 }
 .upload-layout {
   display: flex;

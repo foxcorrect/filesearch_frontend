@@ -22,9 +22,7 @@ export function updateResume(id, data) {
 }
 
 export function uploadResume(formData) {
-  return request.post('/resumes/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  return request.post('/resumes/upload', formData);
 }
 
 export function getResumePdfContent(id) {

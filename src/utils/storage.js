@@ -1,3 +1,5 @@
+// Security note: localStorage is vulnerable to XSS. Consider migrating to
+// httpOnly cookies (requires backend cooperation — Set-Cookie with HttpOnly + SameSite).
 const TOKEN_KEY = 'resume_token';
 
 export function getToken() {

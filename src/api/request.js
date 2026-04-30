@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getToken, removeToken } from '@/utils/storage';
 import { Message } from 'element-ui';
+import router from '@/router';
 
 const request = axios.create({
   baseURL: '/api',
@@ -20,7 +21,7 @@ request.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       removeToken();
-      window.location.href = '/login';
+      router.push('/login');
     } else {
       const msg = error.response?.data?.message || '请求失败';
       Message.error(msg);

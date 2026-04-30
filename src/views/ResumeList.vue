@@ -77,13 +77,7 @@ export default {
 <style scoped>
 .page-header {
   margin-bottom: 16px;
-  background: #fff;
-  padding: 0 24px;
-  line-height: 56px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  margin-top: 10px;
-  height: 40px;
-  padding-top: 25px;
 }
 .page-main {
   padding: 24px;

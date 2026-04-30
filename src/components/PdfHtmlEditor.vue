@@ -69,7 +69,23 @@ export default {
         this.srcdoc = '';
         return;
       }
-      this.srcdoc = html;
+      this.srcdoc = this.sanitizeHtml(html);
+    },
+    sanitizeHtml(html) {
+      try {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        doc.querySelectorAll('script, noscript').forEach((el) => el.remove());
+        doc.querySelectorAll('*').forEach((el) => {
+          Array.from(el.attributes).forEach((attr) => {
+            if (/^on\w+/i.test(attr.name)) {
+              el.removeAttribute(attr.name);
+            }
+          });
+        });
+        return doc.documentElement.outerHTML;
+      } catch {
+        return html;
+      }
     },
     onFrameLoad() {
       const doc = this.getFrameDoc();
@@ -85,10 +101,11 @@ export default {
 
         const style = doc.createElement('style');
         style.id = '__editor_fixes__';
-        style.textContent =
-          '*{-webkit-user-select:text!important;user-select:text!important;}' +
-          '.t:hover{outline:1px dashed rgba(64,158,255,0.4)!important;}' +
-          '.t:focus,.t:active{outline:none!important;background-color:rgba(64,158,255,0.06)!important;}';
+        style.textContent = `
+          *{-webkit-user-select:text!important;user-select:text!important;}
+          .t:hover{outline:1px dashed rgba(64,158,255,0.4)!important;}
+          .t:focus,.t:active{outline:none!important;background-color:rgba(64,158,255,0.06)!important;}
+        `;
         doc.head.appendChild(style);
 
         doc.addEventListener('keydown', (e) => {
@@ -107,6 +124,8 @@ export default {
       }
     },
     exec(command) {
+      // document.execCommand is deprecated but remains the only practical API
+      // for contentEditable formatting in most browsers as of 2026.
       const doc = this.getFrameDoc();
       if (!doc) return;
       doc.execCommand(command, false, null);

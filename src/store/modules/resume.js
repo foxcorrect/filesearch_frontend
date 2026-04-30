@@ -40,8 +40,8 @@ const resume = {
       commit('SET_LOADING', true);
       try {
         const res = await getResumeList(page, size);
-        commit('SET_LIST', res.data.items || res);
-        if (res.data && res.data.total !== undefined) {
+        commit('SET_LIST', res?.data?.items ?? res);
+        if (res?.data?.total !== undefined) {
           commit('SET_TOTAL', res.data.total);
         }
       } finally {

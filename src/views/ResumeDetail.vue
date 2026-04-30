@@ -47,20 +47,22 @@ export default {
     return {
       resume: null,
       editorContent: '',
+      originalContent: '',
       loading: false,
       saving: false,
     };
   },
   computed: {
     genderLabel() {
-      if (this.resume && this.resume.gender === '男') return '男';
-      if (this.resume && this.resume.gender === '女') return '女';
-      return this.resume ? this.resume.gender : '';
+      const g = this.resume?.gender;
+      if (g === 1 || g === '1' || g === '男') return '男';
+      if (g === 2 || g === '2' || g === '女') return '女';
+      return g != null ? String(g) : '';
     },
   },
   async mounted() {
     const id = this.$route.params.id;
-    if (id === undefined || id === null || id === '') {
+    if (!id) {
       this.$message.error('参数错误');
       this.$router.push('/');
       return;
@@ -86,22 +88,27 @@ export default {
       try {
         const contentRes = await getResumePdfContent(id);
         this.editorContent = contentRes.data || '';
+        this.originalContent = this.editorContent;
       } catch {
-        // Non-fatal — editor starts empty
+        this.$message.warning('简历内容加载失败，编辑器将以空白状态启动');
+      } finally {
+        this.loading = false;
       }
-      this.loading = false;
     },
     onEditorReady() {
       // Editor iframe has loaded and contenteditable is active
     },
     async handleSave() {
       if (!this.resume) return;
+      const content = this.$refs.editor
+        ? this.$refs.editor.getContent()
+        : this.editorContent;
+      if (content === this.originalContent) {
+        this.$message.info('内容未变更，无需保存');
+        return;
+      }
       this.saving = true;
       try {
-        // Get the full HTML (including any edits) from the editor
-        const content = this.$refs.editor
-          ? this.$refs.editor.getContent()
-          : this.editorContent;
         await updateResume(this.resume.id, {
           username: this.resume.username,
           workYears: this.resume.workYears,
@@ -110,8 +117,9 @@ export default {
           resumeContent: content,
         });
         this.$message.success('保存成功');
+        this.originalContent = content;
       } catch {
-        // error handled by interceptor
+        this.$message.error('保存失败，请重试');
       } finally {
         this.saving = false;
       }
@@ -130,12 +138,6 @@ export default {
 }
 .page-header {
   margin-bottom: 10px;
-  background: #fff;
-  padding: 0 24px;
-  line-height: 56px;
-  margin-top: 10px;
-  height: 40px;
-  padding-top: 25px;
   flex-shrink: 0;
 }
 .detail-header {
